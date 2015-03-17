@@ -28,9 +28,9 @@ class Index:
 		myvars=dict(un=inp.username,pw=inp.password)
 		user=db.select("users",where="username=$un and password=$pw", vars=myvars)
 		if user:
-			return "Authorized"
+			return render.valid(inp.username)
 		else:
-			return "Unauthorized"
+			return render.invalid(inp.username)
 
 if __name__=="__main__":
 	app=web.application(urls,globals())
