@@ -6,6 +6,7 @@ import sys
 urls=(
 		"/favicon.ico","Icon",
 		"/","Index",
+		"/register","Register",
 		)
 
 render=web.template.render("templates/");
@@ -31,6 +32,18 @@ class Index:
 			return render.valid(inp.username)
 		else:
 			return render.invalid(inp.username)
+
+class Register:
+	def GET(self):
+		return render.register()
+
+	def POST(self):
+		inp=web.input()
+		uid=db.insert("users",username=inp.username,password=inp.password)
+		if uid:
+			return "Registered"
+		else:
+			return "Not registered"
 
 if __name__=="__main__":
 	app=web.application(urls,globals())
