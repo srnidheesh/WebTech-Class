@@ -2,6 +2,8 @@
 
 import web
 import sys
+from web.wsgiserver import CherryPyWSGIServer
+from passlib.hash import md5_crypt
 
 urls=(
 		"/favicon.ico","Icon",
@@ -16,6 +18,9 @@ except:
 	print "Unable to connect to database"
 	sys.exit()
 
+CherryPyWSGIServer.ssl_certificate="ssl/server.crt"
+CherryPyWSGIServer.ssl_private_key="ssl/server.key"
+
 class Icon:
 	def GET(self):
 		return
@@ -26,10 +31,11 @@ class Index:
 
 	def POST(self):
 		inp=web.input()
-		myvars=dict(un=inp.username,pw=inp.password)
-		user=db.select("users",where="username=$un and password=$pw", vars=myvars)
-		if user:
-			return render.valid(inp.username)
+		myvars=dict(un=inp.username)
+		users=db.select("users",where="username=$un", vars=myvars)
+		for user in users:
+			if md5_crypt.verify(inp.password,user.password):
+				return render.valid(inp.username)
 		else:
 			return render.invalid(inp.username)
 
@@ -39,9 +45,10 @@ class Register:
 
 	def POST(self):
 		inp=web.input()
-		uid=db.insert("users",username=inp.username,password=inp.password)
+		pwhash=md5_crypt.encrypt(inp.password)
+		uid=db.insert("users",username=inp.username,password=pwhash)
 		if uid:
-			return "Registered"
+			return render.registered(inp.username)
 		else:
 			return "Not registered"
 
